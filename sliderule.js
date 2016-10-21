@@ -117,7 +117,7 @@ function drawSlants(doc, left, top, width, height, slope, design) {
 
   var lineWidth = (1 / 600) * 72;
   var lineWidthPoints = lineWidth / 72;
-  var lineSpacingPoints = 72 * 16 * lineWidthPoints;
+  var lineSpacingPoints = 72 * 16 * lineWidthPoints * design.spacing;
   var lineSpacingHoriz = lineSpacingPoints / Math.sin(Math.atan(Math.abs(slope)));
   //console.log('space:' + lineSpacingHoriz);
   //console.log('point:' + lineSpacingPoints);
@@ -151,7 +151,7 @@ function drawAllSlantsAt(doc, xPos, yPos, height, length, width, shift, design) 
   //drawSlants(doc, xPos - height, yPos, width + height * 2, height, height / slantOffset, design);
   yPos += height * 2;
 
-  slantOffset = length * Math.log(1.8) / Math.log(10) - shift;
+  slantOffset = length * Math.log(design.amt) / Math.log(10) - shift;
 
   doc.save();
   //doc.rect(xPos - height, yPos, width + 2 * height, height * 7).clip();
@@ -179,7 +179,7 @@ function drawAllSlantsAt(doc, xPos, yPos, height, length, width, shift, design) 
   //drawSlants(doc, xPos - hBorder, bot, width + hBorder * 2, height, height / slantOffset, design);
 }
 
-function drawAll(originX, originY, idealLength, slantDesign) {
+function drawAll(originX, originY, idealLength, slantDesigns) {
   var length = idealLength * Math.log(10) / Math.log(1.8);
 
   var shift = length * Math.log(1.5) / Math.log(10)
@@ -195,7 +195,9 @@ function drawAll(originX, originY, idealLength, slantDesign) {
   var height = mmToPoints(40) / kRows;
   
   yPos -= height;
-  drawAllSlantsAt(doc, originX, yPos, height, length, topRow2X, shift, slantDesign);
+  for (design in slantDesigns) {
+    drawAllSlantsAt(doc, originX, yPos, height, length, topRow2X, shift, slantDesigns[design]);
+  }
   yPos += height * 3;
   
   // clip between 1 and 2 of top row
@@ -231,7 +233,14 @@ var PDFDocument = require('pdfkit');
 var doc = new PDFDocument();
 doc.font('Helvetica.ttf');
 
-drawAll(mmToPoints(80), mmToPoints( 20), mmToPoints(60), {type: 'SOLID', color: [100, 0, 100,   0]});
+drawAll(mmToPoints(80), mmToPoints( 20), mmToPoints(60),
+        [
+          {type: 'SOLID', color: [100, 0, 0,   0], amt: 0.9 * 1.5,
+           spacing: 2},
+          {type: 'SOLID', color: [100, 0, 100,   0], amt: 1.8,
+           spacing: 1}
+        ]
+       );
 // drawAll(mmToPoints(20), mmToPoints( 60), mmToPoints(200), {type: 'SOLID', color: [100, 0,   0,   0]});
 // drawAll(mmToPoints(20), mmToPoints(100), mmToPoints(200), {type: 'SOLID', color: [  0, 0,   0, 100]});
 for (var i = 0; i < 0; i++) {
