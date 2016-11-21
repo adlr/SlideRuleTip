@@ -42,4 +42,6 @@ If you don't want to use Helvetica, just comment out the line that begins with
 
 If you want to modify the output PDF, you'll need to install node and the pdfkit node module.
 
+You'll need to install an older pdfkit version right now: `npm install pdfkit@0.2.1`
+
 Then, simply run: `node sliderule.js`. It will output `sliderule.pdf`.
