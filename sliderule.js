@@ -180,7 +180,7 @@ function drawAll(originX, originY, idealLength, slantDesigns) {
   var kRows = 7;
   
   // height of each row
-  var height = mmToPoints(50) / kRows;
+  var height = mmToPoints(46) / kRows;
   
   yPos -= height;
   for (design in slantDesigns) {
@@ -220,7 +220,7 @@ var PDFDocument = require('pdfkit');
 var doc = new PDFDocument();
 doc.font('Helvetica.ttf');
 
-drawAll(mmToPoints(80), mmToPoints(20), mmToPoints(80),
+drawAll(mmToPoints(10), mmToPoints(10), mmToPoints(80),
         [
           {type: 'SOLID', color: [100, 0, 0,   0], amt: 0.9 * 1.5,
            spacing: 2},
