@@ -76,7 +76,7 @@ function drawRule(doc, originX, xPos, yPos, width10, height, existing, depth,
       var xshift = label[0] != '.' ? 0 : -.7;
       doc.text(label, xPos + pos + xshift, numHeight);
     }
-    if ((nextPos - pos) > 11.6 && !(depth == 0 && i == 0) && i <= 9) {
+    if ((nextPos - pos) > 9.7 && !(depth == 0 && i == 0) && i <= 9) {
       drawRule(doc, originX, xPos, yPos, width10, height / 2, num, depth + 1,
                false, mult, mult > 1 ? mult : 0);
     }
@@ -222,7 +222,7 @@ doc.font('Helvetica.ttf');
 
 drawAll(mmToPoints(10), mmToPoints(10), mmToPoints(80),
         [
-          {type: 'SOLID', color: [100, 0, 0,   0], amt: 0.9 * 1.5,
+          {type: 'SOLID', color: [100, 0, 0,   0], amt: (1 / 1.09) * 1.5,
            spacing: 2},
           {type: 'SOLID', color: [100, 0, 100,   0], amt: 1.8,
            spacing: 1}
