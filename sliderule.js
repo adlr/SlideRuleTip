@@ -66,7 +66,7 @@ function drawRule(doc, originX, xPos, yPos, width10, height, existing, depth,
       doc.lineTo(xPos + pos, yPos - (height + extra));
       doc.stroke();
     }
-    var halfLimit = 3.2;
+    var halfLimit = 3.85;
     if (i > 0 && i < 10 && (nextPos - pos) > halfLimit &&
         (xPos + pos) >= originX && depth <= 1) {
       var numHeight = yPos - height - (depth > 0 ? height / 2 : 0);
@@ -76,7 +76,7 @@ function drawRule(doc, originX, xPos, yPos, width10, height, existing, depth,
       var xshift = label[0] != '.' ? 0 : -.7;
       doc.text(label, xPos + pos + xshift, numHeight);
     }
-    if ((nextPos - pos) > 9.7 && !(depth == 0 && i == 0) && i <= 9) {
+    if ((nextPos - pos) > 11 && !(depth == 0 && i == 0) && i <= 9) {
       drawRule(doc, originX, xPos, yPos, width10, height / 2, num, depth + 1,
                false, mult, mult > 1 ? mult : 0);
     }
@@ -222,8 +222,8 @@ doc.font('Helvetica.ttf');
 
 drawAll(mmToPoints(10), mmToPoints(10), mmToPoints(80),
         [
-          {type: 'SOLID', color: [100, 0, 0,   0], amt: (1 / 1.09) * 1.5,
-           spacing: 2},
+          {type: 'SOLID', color: [100, 0, 0,   0], amt: (1 / 1.0925) * 1.5,
+           spacing: 3},
           {type: 'SOLID', color: [100, 0, 100,   0], amt: 1.8,
            spacing: 1}
         ]
