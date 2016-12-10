@@ -102,7 +102,7 @@ function drawDottedLine(doc, left, top, width, height, radius, space) {
   }
 }
 
-function drawSlants(doc, left, top, width, height, slope, design) {
+function drawSlants(doc, left, top, width, height, slopes, design) {
   doc.save();
   doc.rect(left, top, width, height).clip();
   if (design.type == 'SOLID') {
@@ -112,9 +112,10 @@ function drawSlants(doc, left, top, width, height, slope, design) {
     doc.fillColor(design.color);
   }
 
+  var slope = slopes[0];
   var lineWidth = (1 / 600) * 72;
   var lineWidthPoints = lineWidth / 72;
-  var lineSpacingPoints = 72 * 16 * lineWidthPoints * design.spacing;
+  var lineSpacingPoints = 72 * 16 * lineWidthPoints * design.spacing[0];
   var lineSpacingHoriz = lineSpacingPoints /
       Math.sin(Math.atan(Math.abs(slope)));
   doc.lineWidth(lineWidth);
@@ -144,10 +145,11 @@ function drawSlants(doc, left, top, width, height, slope, design) {
 
 function drawAllSlantsAt(doc, xPos, yPos, height, length, width, shift,
                          design) {
-  var slantOffset = length * Math.log(2.0) / Math.log(10) - shift;
   yPos += height * 2;
 
-  slantOffset = length * Math.log(design.amt) / Math.log(10) - shift;
+  var slantOffset = design.amts.map(function(amt) {
+    return length * Math.log(amt) / Math.log(10) - shift;
+  });
 
   doc.save();
   var hBorder = 0;
@@ -159,7 +161,7 @@ function drawAllSlantsAt(doc, xPos, yPos, height, length, width, shift,
 	      [xPos - hBorder, bot],
 	      [xPos - hBorder, yPos]).clip();
   drawSlants(doc, xPos - hBorder, yPos, width + 2 * hBorder, bot - yPos,
-             height / slantOffset, design);
+             slantOffset.map(function(x) { return height / x; }), design);
 
   doc.restore();
 }
@@ -222,10 +224,10 @@ doc.font('Helvetica.ttf');
 
 drawAll(mmToPoints(10), mmToPoints(10), mmToPoints(80),
         [
-          {type: 'SOLID', color: [100, 0, 0,   0], amt: (1 / 1.0925) * 1.5,
-           spacing: 3},
-          {type: 'SOLID', color: [100, 0, 100,   0], amt: 1.8,
-           spacing: 1}
+          {type: 'SOLID', color: [100, 0, 0,   0], amts: [(1 / 1.0925) * 1.5],
+           spacing: [3]},
+          {type: 'SOLID', color: [100, 0, 100,   0], amts: [1.8],
+           spacing: [1]}
         ]
        );
 
