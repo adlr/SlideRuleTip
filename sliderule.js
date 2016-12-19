@@ -102,7 +102,97 @@ function drawDottedLine(doc, left, top, width, height, radius, space) {
   }
 }
 
+function addVectors(first, second) {
+  return [first[0] + second[0], first[1] + second[1]];
+}
+
+function negateVector(vect) {
+  return [-vect[0], -vect[1]];
+}
+
+function drawZigZagSlants(doc, left, top, width, height, slopes, design) {
+  var angles = slopes.map(Math.atan);
+  var diff = angles[1] - angles[0];
+  var length = [ design.spacing[1] / Math.sin(diff),
+                 design.spacing[0] / Math.sin(diff) ];
+  var vectors = [ [Math.cos(angles[0]) * length[0],
+                   Math.sin(angles[0]) * length[0]],
+                  [Math.cos(angles[1]) * length[1],
+                   Math.sin(angles[1]) * length[1]],
+                ];
+  if (vectors[0][1] <= 0) {
+    console.log('vector with negative y!');
+  }
+
+  var lineWidth = (1 / 600) * 72;
+  var lineWidthPoints = lineWidth / 72;
+  var lineSpacingPoints = 72 * 16 * lineWidthPoints * design.spacing[0];
+  var lineSpacingHoriz = lineSpacingPoints /
+      Math.sin(Math.atan(Math.abs(slopes[0])));
+  doc.lineWidth(lineWidth);
+
+
+  for (var iter = 0; iter < 2; iter++) {
+    console.log('iter=' + iter);
+    var startPoint = [left, top];
+    if (slopes[0] > 0)
+      startPoint[0] -= height / slopes[iter];
+    var endPos = left + width;
+    if (slopes[0] < 0)
+      endPos += height / -slope;
+
+    if (iter == 1) {
+      //startPoint = addVectors(startPoint, negateVector(vectors[0]));
+    }
+
+    while (startPoint[0] < endPos) {
+      console.log(startPoint[0]);
+      var endPoint = addVectors(startPoint, vectors[0]);
+      while (endPoint[1] < top + height) {
+        endPoint = addVectors(endPoint, vectors[0]);
+      }
+
+      doc.moveTo(startPoint[0], startPoint[1]);
+      doc.strokeColor(design.color);
+      doc.dash(length[0]);
+      doc.lineTo(endPoint[0], endPoint[1]);
+      doc.stroke();
+
+      // compute next startPoint
+      if (iter == 0) {
+        startPoint = addVectors(startPoint, vectors[0]);
+        var delta = vectors[1][0] > 0 ? vectors[1] : negateVector(vectors[1]);
+        startPoint = addVectors(startPoint, delta);
+      } else {
+        startPoint = addVectors(startPoint, negateVector(vectors[0]));
+        startPoint = addVectors(startPoint, vectors[1]);
+      }
+      while (startPoint[1] < top) {
+        // Add double to include spacing
+        startPoint = addVectors(startPoint, vectors[0]);
+        startPoint = addVectors(startPoint, vectors[0]);
+      }
+      while (startPoint[1] > top) {
+        startPoint = addVectors(startPoint, negateVector(vectors[0]));
+        startPoint = addVectors(startPoint, negateVector(vectors[0]));
+      }
+    }
+
+    angles = [angles[1], angles[0]];
+    vectors = [vectors[1], vectors[0]];
+    length = [length[1], length[0]];
+    slopes = [slopes[1], slopes[0]];
+  }
+}
+
 function drawSlants(doc, left, top, width, height, slopes, design) {
+  if (design.type == 'ZIGZAG') {
+    doc.save();
+    doc.rect(left, top, width, height).clip();
+    drawZigZagSlants(doc, left, top, width, height, slopes, design);
+    doc.restore();
+    return;
+  }
   doc.save();
   doc.rect(left, top, width, height).clip();
   if (design.type == 'SOLID') {
@@ -120,6 +210,9 @@ function drawSlants(doc, left, top, width, height, slopes, design) {
       Math.sin(Math.atan(Math.abs(slope)));
   doc.lineWidth(lineWidth);
 
+  // ticks
+  var ROWS = 7;
+
   var pos = left;
   if (slope > 0) {
     pos -= height / slope;
@@ -130,9 +223,22 @@ function drawSlants(doc, left, top, width, height, slopes, design) {
   }
   while (pos < endPos) {
     if (design.type == 'SOLID') {
-      doc.moveTo(pos, top);
-      doc.lineTo(pos + height / slope, top + height);
+      var xStart = pos;
+      var yStart = top;
+      var xEnd = pos + height / slope;
+      var yEnd = top + height
+      doc.moveTo(xStart, yStart);
+      doc.lineTo(xEnd, yEnd);
       doc.stroke();
+      if ('tics' in design) {
+        for (var row = 0; row < ROWS; row++) {
+          var xTick = xStart + (row + 0.5) * (xEnd - xStart) / ROWS + mmToPoints(0.5);
+          var yTick = yStart + (row + 0.5) * (yEnd - yStart) / ROWS;
+          doc.moveTo(xTick, yTick);
+          doc.lineTo(xTick + mmToPoints(1.5), yTick);
+          doc.stroke();
+        }
+      }
     } else if (design.type == 'DOTS') {
       drawDottedLine(doc, pos, top, height / slope, height, design.radius,
                      design.space);
@@ -222,13 +328,55 @@ var PDFDocument = require('pdfkit');
 var doc = new PDFDocument();
 doc.font('Helvetica.ttf');
 
+// color test
+// doc.moveTo(mmToPoints(10), mmToPoints(13));
+// doc.lineTo(mmToPoints(100), mmToPoints(13));
+// doc.strokeColor([100, 0, 0, 0]);
+// doc.lineWidth(72/600);
+// doc.stroke();
+
+// doc.moveTo(mmToPoints(10), mmToPoints(14));
+// doc.lineTo(mmToPoints(100), mmToPoints(14));
+// doc.strokeColor([100, 0, 100, 0]);
+// doc.lineWidth(72/600);
+// doc.stroke();
+
+// doc.moveTo(mmToPoints(10), mmToPoints(15));
+// doc.lineTo(mmToPoints(100), mmToPoints(15));
+// doc.strokeColor([0, 0, 100, 0]);
+// doc.lineWidth(72/600);
+// doc.stroke();
+
+// doc.moveTo(mmToPoints(10), mmToPoints(113));
+// doc.lineTo(mmToPoints(100), mmToPoints(113));
+// doc.strokeColor([100, 0, 0, 0]);
+// doc.lineWidth(2);
+// doc.stroke();
+
+// doc.moveTo(mmToPoints(10), mmToPoints(114));
+// doc.lineTo(mmToPoints(100), mmToPoints(114));
+// doc.strokeColor([100, 0, 100, 0]);
+// doc.lineWidth(2);
+// doc.stroke();
+
+// doc.moveTo(mmToPoints(10), mmToPoints(115));
+// doc.lineTo(mmToPoints(100), mmToPoints(115));
+// doc.strokeColor([0, 0, 100, 0]);
+// doc.lineWidth(2);
+// doc.stroke();
+
+doc.strokeColor([0, 0, 0, 100]);
+
 drawAll(mmToPoints(10), mmToPoints(10), mmToPoints(80),
         [
-          {type: 'SOLID', color: [100, 0, 0,   0], amts: [(1 / 1.0925) * 1.5],
-           spacing: [3]},
+          // {type: 'SOLID', color: [100, 0, 100,   0], amts: [(1.0925) * 1.5],
+          //  spacing: [3]},
           {type: 'SOLID', color: [100, 0, 100,   0], amts: [1.8],
-           spacing: [1]}
+           spacing: [1], tics: 1.0925 * 1.5}
+          // {type: 'ZIGZAG', color: [0, 0, 0,   100], amts: [1.8, (1 / 1.0925) * 1.5],
+          //  spacing: [3, 3]},
         ]
        );
+
 
 doc.write('sliderule.pdf');
